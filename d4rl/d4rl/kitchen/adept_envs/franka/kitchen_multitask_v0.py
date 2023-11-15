@@ -139,6 +139,7 @@ class KitchenV0(robot_env.RobotEnv):
         use_workspace_limits=True,
         control_mode="primitives",
         use_grasp_rewards=False,
+        reward_type="sparse",
     ):
         self.control_mode = control_mode
         self.MODEL = self.CTLR_MODES_DICT[self.control_mode]["model"]
@@ -203,7 +204,7 @@ class KitchenV0(robot_env.RobotEnv):
         self.min_ee_pos = np.array([-0.9, 0, 1.5])
         self.max_ee_pos = np.array([0.7, 1.5, 3.25])
         self.use_workspace_limits = use_workspace_limits
-
+        self.reward_type = reward_type 
         super().__init__(
             self.MODEL,
             robot=self.make_robot(
@@ -216,6 +217,9 @@ class KitchenV0(robot_env.RobotEnv):
                 distance=2.2, lookat=[-0.2, 0.5, 2.0], azimuth=70, elevation=-35
             ),
         )
+        #mujoco_py = module.get_mujoco_py()
+        self.mjpy_model = mujoco_py.load_model_from_path(self.MODEL)
+        self.mjpy_sim = mujoco_py.MjSim(self.mjpy_model)
 
         if self.image_obs:
             self.imlength = imwidth * imheight
@@ -378,7 +382,7 @@ class KitchenV0(robot_env.RobotEnv):
             for i in range(sim.model.eq_data.shape[0]):
                 if sim.model.eq_type[i] == mujoco_py.const.EQ_WELD:
                     sim.model.eq_data[i, :] = np.array(
-                        [0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0]
+                        [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0]
                     )
         sim.forward()
 
@@ -663,8 +667,9 @@ class KitchenV0(robot_env.RobotEnv):
             "time": self.obs_dict["t"],
             "score": score,
         }
+        reward = reward_dict["r_total"]
         self.unset_render_every_step()
-        return obs, reward_dict["r_total"], done, env_info
+        return obs, reward, done, env_info
 
     def _get_obs(self):
         t, qp, qv, obj_qp, obj_qv = self.robot.get_obs(

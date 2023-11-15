@@ -112,7 +112,7 @@ if __name__ == "__main__":
             detach_rewards=False,
             imagination_horizon=5,
         ),
-        num_expl_envs=5 * 2,
+        num_expl_envs=1,
         num_eval_envs=1,
         expl_amount=0.3,
         save_video=True,

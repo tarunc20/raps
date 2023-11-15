@@ -259,7 +259,8 @@ class ImageEnvMetaworld(gym.Wrapper):
                 imwidth=self.imwidth,
                 imheight=self.imheight,
             )
-
+        # for wrist cam
+        img = self.env.sim.render(camera_id=5, width=self.imwidth, height=self.imheight)
         img = img.transpose(2, 0, 1).flatten()
         return img
 
@@ -828,6 +829,8 @@ class RobosuiteWrapper(GymWrapper):
         o = self.env.render(
             render_mode="rgb_array", imheight=self.imheight, imwidth=self.imwidth
         )
+        # always use wrist cam
+        o = self.env.sim.render(camera_id=5, imheight=self.imheight, imwidth=self.imwidth)
         o = (
             o.reshape(self.imwidth, self.imheight, 3)[:, :, ::-1]
             .transpose(2, 0, 1)

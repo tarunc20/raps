@@ -57,6 +57,7 @@ if __name__ == "__main__":
             has_renderer=False,
             has_offscreen_renderer=False,
             use_camera_obs=False,
+            camera_names="robot0_eye_in_hand"
             camera_heights=64,
             camera_widths=64,
             controller_configs={

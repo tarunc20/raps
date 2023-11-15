@@ -1,6 +1,7 @@
 """Environments using kitchen and Franka robot."""
 import numpy as np
 from d4rl.kitchen.adept_envs.franka.kitchen_multitask_v0 import KitchenTaskRelaxV1
+from dm_control.mujoco import engine 
 
 OBS_ELEMENT_INDICES = {
     "bottom left burner": np.array([11, 12]),
@@ -48,7 +49,15 @@ class KitchenBase(KitchenTaskRelaxV1):
         self.obs_dict["obj_qv"] = obj_qv
         self.obs_dict["goal"] = self.goal
         if self.image_obs:
-            img = self.render(mode="rgb_array")
+            #img = self.render(mode="rgb_array")
+            # using wrist cam 
+            camera = engine.Camera(
+                self.sim,
+                height=self.imheight,
+                width=self.imwidth,
+                camera_id=self.sim.model.camera_name2id("eye_in_hand"),
+            )
+            img = camera.render()
             img = img.transpose(2, 0, 1).flatten()
             return img
         else:
@@ -182,6 +191,8 @@ class KitchenBase(KitchenTaskRelaxV1):
         if self.TERMINATE_ON_TASK_COMPLETE:
             done = not self.tasks_to_complete
         self.update_info(env_info)
+        if self.reward_type == "sparse":
+            reward = env_info["success"]
         return obs, reward, done, env_info
 
     def update_info(self, info):
