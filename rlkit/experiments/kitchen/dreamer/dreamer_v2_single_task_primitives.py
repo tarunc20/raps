@@ -32,14 +32,14 @@ if __name__ == "__main__":
         exp_prefix = "test" + args.exp_prefix
     else:
         algorithm_kwargs = dict(
-            num_epochs=250,
+            num_epochs=10,
             num_eval_steps_per_epoch=30,
             min_num_steps_before_training=2500,
             num_pretrain_steps=100,
             max_path_length=5,
             batch_size=417,
             num_expl_steps_per_train_loop=30,
-            num_train_loops_per_epoch=40,
+            num_train_loops_per_epoch=20,
             num_trains_per_train_loop=10,
         )
         exp_prefix = args.exp_prefix
@@ -109,7 +109,7 @@ if __name__ == "__main__":
             detach_rewards=False,
             imagination_horizon=5,
         ),
-        num_expl_envs=5,
+        num_expl_envs=10,
         num_eval_envs=1,
         expl_amount=0.3,
     )

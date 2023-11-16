@@ -52,14 +52,14 @@ if __name__ == "__main__":
         exp_prefix = "test" + args.exp_prefix
     else:
         algorithm_kwargs = dict(
-            num_epochs=1000,
+            num_epochs=10,
             num_eval_steps_per_epoch=30,
             min_num_steps_before_training=2500,
             num_pretrain_steps=100,
             max_path_length=5,
             batch_size=417,
-            num_expl_steps_per_train_loop=30 * 2,
-            num_train_loops_per_epoch=40 // 2,
+            num_expl_steps_per_train_loop=60,
+            num_train_loops_per_epoch=20,
             num_trains_per_train_loop=10 * 2,
         )
         exp_prefix = args.exp_prefix

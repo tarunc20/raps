@@ -830,7 +830,8 @@ class RobosuiteWrapper(GymWrapper):
             render_mode="rgb_array", imheight=self.imheight, imwidth=self.imwidth
         )
         # always use wrist cam
-        o = self.env.sim.render(camera_id=5, imheight=self.imheight, imwidth=self.imwidth)
+        #o = self.env.sim.render(camera_id=5, imheight=self.imheight, imwidth=self.imwidth)
+        o = self.env.sim.render(camera_name="robot0_eye_in_hand", width=self.imwidth, height=self.imheight)
         o = (
             o.reshape(self.imwidth, self.imheight, 3)[:, :, ::-1]
             .transpose(2, 0, 1)
