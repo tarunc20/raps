@@ -16,6 +16,7 @@ if __name__ == "__main__":
     parser.add_argument("--mode", type=str, default="local")
     parser.add_argument("--env", type=str, default="")
     parser.add_argument("--debug", action="store_true", default=False)
+    parser.add_argument("--use_fixed_plus_wrist_view", action="store_true", default=False)
     args = parser.parse_args()
     if args.debug:
         algorithm_kwargs = dict(
@@ -46,13 +47,13 @@ if __name__ == "__main__":
     variant = dict(
         algorithm="DreamerV2",
         version="normal",
-        replay_buffer_size=int(5e5),
+        replay_buffer_size=int(1e5),
         algorithm_kwargs=algorithm_kwargs,
         env_name="hinge_cabinet",
         use_raw_actions=False,
         env_suite="kitchen",
         pass_render_kwargs=True,
-        save_video=True,
+        save_video=False,
         env_kwargs=dict(
             dense=False,
             image_obs=True,
@@ -66,7 +67,7 @@ if __name__ == "__main__":
                 max_path_length=5,
                 unflatten_images=False,
             ),
-            image_kwargs=dict(),
+            image_kwargs=dict(use_fixed_plus_wrist_view=args.use_fixed_plus_wrist_view),
         ),
         actor_kwargs=dict(
             discrete_continuous_dist=True,

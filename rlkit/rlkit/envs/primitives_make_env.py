@@ -1,4 +1,4 @@
-def make_base_robosuite_env(env_name, kwargs, use_dm_backend=True):
+def make_base_robosuite_env(env_name, kwargs, use_dm_backend=True, use_fixed_plus_wrist_view=False):
     import gym
     import numpy as np
 
@@ -25,7 +25,7 @@ def make_base_robosuite_env(env_name, kwargs, use_dm_backend=True):
     np.random.seed(42)
     env = suite.make(env_name, **env_kwargs_new)
     env = RobosuiteWrapper(
-        env, keys=keys, reset_action_space_kwargs=reset_action_space_kwargs
+        env, keys=keys, reset_action_space_kwargs=reset_action_space_kwargs, use_fixed_plus_wrist_view=use_fixed_plus_wrist_view,
     )
     if reset_action_space_kwargs["control_mode"] == "robosuite":
         env = NormalizeBoxEnvFixed(env)
@@ -118,7 +118,7 @@ def make_env(env_suite, env_name, env_kwargs):
     use_raw_action_wrappers = usage_kwargs.get("use_raw_action_wrappers", False)
     use_image_obs = usage_kwargs.get("use_image_obs", True)
     unflatten_images = usage_kwargs.get("unflatten_images", False)
-
+    use_fixed_plus_wrist_view = image_kwargs.get("use_fixed_plus_wrist_view", "False")
     env_kwargs_new = env_kwargs.copy()
     if "usage_kwargs" in env_kwargs_new:
         del env_kwargs_new["usage_kwargs"]
@@ -126,6 +126,7 @@ def make_env(env_suite, env_name, env_kwargs):
         del env_kwargs_new["image_kwargs"]
 
     if env_suite == "kitchen":
+        env_kwargs_new['use_fixed_plus_wrist_view'] = use_fixed_plus_wrist_view
         env = make_base_kitchen_env(env_name, env_kwargs_new)
     elif env_suite == "metaworld":
         env = make_base_metaworld_env(env_name, env_kwargs_new, use_dm_backend)
@@ -135,7 +136,7 @@ def make_env(env_suite, env_name, env_kwargs):
                 **image_kwargs,
             )
     elif env_suite == "robosuite":
-        env = make_base_robosuite_env(env_name, env_kwargs_new, use_dm_backend)
+        env = make_base_robosuite_env(env_name, env_kwargs_new, use_dm_backend, use_fixed_plus_wrist_view)
     if unflatten_images:
         env = ImageUnFlattenWrapper(env)
 

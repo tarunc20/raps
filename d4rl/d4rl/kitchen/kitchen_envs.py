@@ -58,6 +58,10 @@ class KitchenBase(KitchenTaskRelaxV1):
                 camera_id=self.sim.model.camera_name2id("eye_in_hand"),
             )
             img = camera.render()
+            if self.use_fixed_plus_wrist_view:
+                img = np.concatenate(
+                    (img, self.render(mode="rgb_array")), axis=2
+                )
             img = img.transpose(2, 0, 1).flatten()
             return img
         else:

@@ -18,6 +18,7 @@ if __name__ == "__main__":
     parser.add_argument("--mode", type=str, default="local")
     parser.add_argument("--env", type=str, default="")
     parser.add_argument("--debug", action="store_true", default=False)
+    parser.add_argument("--use_fixed_plus_wrist_view", action="store_true", default=False)
     args = parser.parse_args()
     if args.debug:
         algorithm_kwargs = dict(
@@ -34,7 +35,7 @@ if __name__ == "__main__":
         exp_prefix = "test" + args.exp_prefix
     else:
         algorithm_kwargs = dict(
-            num_epochs=10,
+            num_epochs=100,
             num_eval_steps_per_epoch=30,
             min_num_steps_before_training=2500,
             num_pretrain_steps=100,
@@ -103,7 +104,7 @@ if __name__ == "__main__":
                 use_dm_backend=True,
                 max_path_length=5,
             ),
-            image_kwargs=dict(),
+            image_kwargs=dict(use_fixed_plus_wrist_view=args.use_fixed_plus_wrist_view),
         ),
         actor_kwargs=dict(
             discrete_continuous_dist=True,
@@ -150,7 +151,7 @@ if __name__ == "__main__":
         num_eval_envs=1,
         expl_amount=0.3,
         pass_render_kwargs=True,
-        save_video=True,
+        save_video=False,
     )
 
     search_space = {}

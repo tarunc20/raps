@@ -237,17 +237,24 @@ class ImageEnvMetaworld(gym.Wrapper):
         imwidth=84,
         imheight=84,
         reward_scale=1.0,
+        use_fixed_plus_wrist_view=False,
     ):
         gym.Wrapper.__init__(self, env)
         self.env.imwdith = imwidth
         self.env.imheight = imheight
         self.imwidth = imwidth
         self.imheight = imheight
-        self.observation_space = Box(
-            0, 255, (3 * self.imwidth * self.imheight,), dtype=np.uint8
-        )
+        if use_fixed_plus_wrist_view:
+            self.observation_space = Box(
+                0, 255, (6 * self.imwidth * self.imheight,), dtype=np.uint8
+            )
+        else:
+            self.observation_space = Box(
+                0, 255, (3 * self.imwidth * self.imheight,), dtype=np.uint8
+            )
         self.image_shape = (3, self.imwidth, self.imheight)
         self.reward_scale = reward_scale
+        self.use_fixed_plus_wrist_view = use_fixed_plus_wrist_view
 
     def _get_image(self):
         if hasattr(self.env, "_use_dm_backend"):
@@ -260,8 +267,17 @@ class ImageEnvMetaworld(gym.Wrapper):
                 imheight=self.imheight,
             )
         # for wrist cam
-        img = self.env.sim.render(camera_id=5, width=self.imwidth, height=self.imheight)
+        if self.use_fixed_plus_wrist_view:
+            img = np.concatenate(
+                (
+                    self.env.sim.render(camera_id=5, width=self.imwidth, height=self.imheight),
+                    self.env.sim.render(camera_id=1, width=self.imwidth, height=self.imheight)
+                ), axis=2,
+            )
+        else:
+            img = self.env.sim.render(camera_id=5, width=self.imwidth, height=self.imheight)
         img = img.transpose(2, 0, 1).flatten()
+        print(f"Shape of img: {img.shape}")
         return img
 
     def __getattr__(self, name):
@@ -807,6 +823,7 @@ class RobosuiteWrapper(GymWrapper):
         env,
         reset_action_space_kwargs,
         keys=None,
+        use_fixed_plus_wrist_view=False,
     ):
         super().__init__(
             env,
@@ -816,9 +833,12 @@ class RobosuiteWrapper(GymWrapper):
             self.env.reset_action_space(**reset_action_space_kwargs)
             if self.control_mode == "primitives" or self.control_mode == "vices":
                 self.action_space = self.env.action_space
+        self.use_fixed_plus_wrist_view = use_fixed_plus_wrist_view 
         self.image_shape = (3, self.imwidth, self.imheight)
         self.imlength = self.imwidth * self.imheight
         self.imlength *= 3
+        if self.use_fixed_plus_wrist_view:
+            self.imlength *= 2
         self.observation_space = spaces.Box(0, 255, (self.imlength,), dtype=np.uint8)
 
     def __getattr__(self, name):
@@ -832,8 +852,14 @@ class RobosuiteWrapper(GymWrapper):
         # always use wrist cam
         #o = self.env.sim.render(camera_id=5, imheight=self.imheight, imwidth=self.imwidth)
         o = self.env.sim.render(camera_name="robot0_eye_in_hand", width=self.imwidth, height=self.imheight)
+        if self.use_fixed_plus_wrist_view:
+            o = np.concatenate(
+                (
+                    o, self.env.sim.render(camera_name="agentview", width=self.imwidth, height=self.imheight)
+                ), axis = 2
+            )
         o = (
-            o.reshape(self.imwidth, self.imheight, 3)[:, :, ::-1]
+            o.reshape(self.imwidth, self.imheight, self.imlength // (self.imwidth * self.imheight))[:, :, ::-1]
             .transpose(2, 0, 1)
             .flatten()
         )
@@ -848,16 +874,23 @@ class RobosuiteWrapper(GymWrapper):
     ):
         self.env.set_render_every_step(render_every_step, render_mode, render_im_shape)
         o, r, d, i = super().step(action)
-        o = self.env.render(
-            render_mode="rgb_array", imheight=self.imheight, imwidth=self.imwidth
-        )
+        # o = self.env.render(
+        #     render_mode="rgb_array", imheight=self.imheight, imwidth=self.imwidth
+        # )
+        o = self.env.sim.render(camera_name="robot0_eye_in_hand", width=self.imwidth, height=self.imheight)
+        if self.use_fixed_plus_wrist_view:
+            o = np.concatenate(
+                (
+                    o, self.env.sim.render(camera_name="agentview", width=self.imwidth, height=self.imheight)
+                ), axis = 2
+            )
         self.env.unset_render_every_step()
         new_i = {}
         for k, v in i.items():
             if v is not None:
                 new_i[k] = v
         o = (
-            o.reshape(self.imwidth, self.imheight, 3)[:, :, ::-1]
+            o.reshape(self.imwidth, self.imheight, self.imlength // (self.imwidth * self.imheight))[:, :, ::-1]
             .transpose(2, 0, 1)
             .flatten()
         )

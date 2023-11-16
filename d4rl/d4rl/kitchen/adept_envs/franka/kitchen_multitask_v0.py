@@ -140,6 +140,7 @@ class KitchenV0(robot_env.RobotEnv):
         control_mode="primitives",
         use_grasp_rewards=False,
         reward_type="sparse",
+        use_fixed_plus_wrist_view=False,
     ):
         self.control_mode = control_mode
         self.MODEL = self.CTLR_MODES_DICT[self.control_mode]["model"]
@@ -155,6 +156,7 @@ class KitchenV0(robot_env.RobotEnv):
         self.imwidth = imwidth
         self.imheight = imheight
         self.action_scale = action_scale
+        self.use_fixed_plus_wrist_view = use_fixed_plus_wrist_view
 
         self.primitive_idx_to_name = {
             0: "angled_x_y_grasp",
@@ -224,6 +226,8 @@ class KitchenV0(robot_env.RobotEnv):
         if self.image_obs:
             self.imlength = imwidth * imheight
             self.imlength *= 3
+            if self.use_fixed_plus_wrist_view:
+                self.imlength *= 2
             self.image_shape = (3, imheight, imwidth)
 
             self.observation_space = spaces.Box(
